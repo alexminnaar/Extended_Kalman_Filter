@@ -84,20 +84,19 @@ void KalmanFilter::UpdateEKF(const VectorXd &z)
 
   h_x << precomp2, atan2(x_[1], x_[0]), precomp1 / precomp2;
 
-  //if phi is greater than PI then subtract 2PI
-  if (h_x[1] > M_PI)
-  {
-    h_x[1] = h_x[1] - 2 * M_PI;
-  }
-  //if phi is less than -PI then add 2PI
-  if (h_x[1] < -M_PI)
-  {
-
-    h_x[1] = h_x[1] + 2 * M_PI;
-  }
-
   //use regular update equations for the rest.  The H_ matrix should have been set to the Jacobian immediately before this function is called
   VectorXd y = z - h_x;
+
+  //make sure phi is between -PI and PI
+  while (y(1) > M_PI)
+  {
+    y(1) -= 2 * M_PI;
+  }
+  while (y(1) < -M_PI)
+  {
+    y(1) += 2 * M_PI;
+  }
+
   MatrixXd Ht = H_.transpose();
   MatrixXd S = H_ * P_ * Ht + R_;
   MatrixXd Si = S.inverse();
